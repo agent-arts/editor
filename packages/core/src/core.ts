@@ -22,6 +22,8 @@ export interface CustomEditorOptions {
   initialDoc: string;
   initialBlocks?: { pos: number, block: EditorBlock }[];
   onOpenPopup: (id: string, rect: DOMRect) => void;
+  onTriggerPluginPopup: (pos: number) => void;
+  onTriggerAIDialog: (pos: number) => void;
   onBlockDeleted?: (id: string) => void;
   onBlockUpdated?: (id: string, text: string) => void;
 }
@@ -61,9 +63,27 @@ export class CustomEditor {
     };
 
     const state = createEditorState(options.initialDoc, callbacks, options.initialBlocks || []);
+    
+    const updateListener = EditorView.updateListener.of((update) => {
+      if (update.docChanged) {
+        update.changes.iterChanges((fromA, toA, fromB, toB, inserted) => {
+          const char = inserted.sliceString(0);
+          if (inserted.length === 1) {
+            if (char === '{') {
+              this.options.onTriggerPluginPopup(fromA);
+            } else if (char === '/') {
+              this.options.onTriggerAIDialog(fromA);
+            }
+          }
+        });
+      }
+    });
+
     this.view = new EditorView({
-      state,
-      parent: options.parent
+      state: state.update({
+        effects: StateEffect.appendConfig.of(updateListener)
+      }).state,
+      parent: options.parent,
     });
   }
 
@@ -84,6 +104,15 @@ export class CustomEditor {
     return newBlock;
   }
 
+  public addPluginBlock(pos: number, block: PluginBlock) {
+    this.view.dispatch({
+      changes: { from: pos, to: pos + 1, insert: ' ' },
+      effects: addPluginBlockEffect.of({ pos, block }),
+      selection: { anchor: pos + 1 }
+    });
+    this.view.focus();
+  }
+
   public syncBlock(updatedBlock: EditorBlock) {
     this.allBlocks.set(updatedBlock.id, { ...updatedBlock });
     this.view.dispatch({
@@ -93,6 +122,10 @@ export class CustomEditor {
 
   public getBlock(id: string) {
     return this.allBlocks.get(id);
+  }
+
+  public coordsAtPos(pos: number) {
+    return this.view.coordsAtPos(pos);
   }
 
   public getData() {
@@ -107,6 +140,13 @@ export class CustomEditor {
 // 定义用于在文档中添加和删除块的状态效果
 export const addBlockEffect = StateEffect.define<EditorBlock>();
 export const updateBlockEffect = StateEffect.define<EditorBlock>();
+export const addPluginBlockEffect = StateEffect.define<{ pos: number, block: PluginBlock }>();
+
+export interface PluginBlock {
+  id: string;
+  name: string;
+  type: 'plugin' | 'workflow';
+}
 
 // 自定义 Widget
 class BlockWidget extends WidgetType {
@@ -189,8 +229,31 @@ class BlockWidget extends WidgetType {
   }
 
   override ignoreEvent(event: Event) {
-    // 返回 true 表示让浏览器处理这些事件（例如 input 的打字、点击、获焦等）
-    // 这样 input 元素本身就能正常工作，而不会被 CodeMirror 拦截
+    return true;
+  }
+}
+
+class PluginWidget extends WidgetType {
+  constructor(public block: PluginBlock) {
+    super();
+  }
+
+  override toDOM() {
+    const span = document.createElement('span');
+    span.className = `cm-plugin-block cm-plugin-block-${this.block.type}`;
+    span.setAttribute('data-block-id', this.block.id);
+
+    const icon = document.createElement('i');
+    icon.className = this.block.type === 'plugin' ? 'icon-plugin' : 'icon-workflow';
+    span.appendChild(icon);
+
+    const text = document.createTextNode(this.block.name);
+    span.appendChild(text);
+
+    return span;
+  }
+
+  override ignoreEvent(event: Event) {
     return true;
   }
 }
@@ -252,6 +315,12 @@ export const blockField = StateField.define<DecorationSet>({
             }).range(pos, pos + 1)]
           });
         }
+      } else if (e.is(addPluginBlockEffect)) {
+        const { pos, block } = e.value;
+        const pluginDecoration = Decoration.replace({
+          widget: new PluginWidget(block),
+        }).range(pos, pos + 1);
+        decorations = decorations.update({ add: [pluginDecoration] });
       }
     }
     return decorations;

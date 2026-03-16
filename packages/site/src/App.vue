@@ -1,16 +1,25 @@
 <script setup lang="ts">
 import Editor from './components/Editor.vue'
+import { onMounted, ref } from 'vue'
+
+const editorRef = ref()
+
+const addBlock = () => {
+  console.log('editorRef.value.editor', editorRef.value, editorRef.value.editor);
+  
+  editorRef.value.editor.addBlock();
+}
 </script>
 
 <template>
   <div class="w-[560px]">
-    <div class="flex justify-between">
+    <div class="flex justify-between mb-4">
       <div>提示词</div>
       <div>
-        <i class="ci-task"></i>
+        <i class="ci-task font-size-5" @click="addBlock"></i>
       </div>
     </div>
-    <Editor />
+    <Editor ref="editorRef" />
   </div>
 </template>
 
