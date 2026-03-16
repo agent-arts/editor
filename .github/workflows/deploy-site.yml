@@ -30,6 +30,8 @@ jobs:
 
       - name: Install deps
         run: pnpm i
+      - name: Build lib
+        run: pnpm build:lib
       - name: Build site
         run: pnpm build
       - name: Setup Pages
