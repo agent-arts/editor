@@ -1,3 +1,11 @@
 body {
   padding: 40px;
 }
+
+.cm-editor.cm-focused {
+  outline: none;
+}
+
+.cm-editor .block-input {
+  text-align: left;
+}

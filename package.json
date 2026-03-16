@@ -5,5 +5,8 @@
     "dev": "pnpm -F site dev",
     "build": "pnpm -F site build",
     "build:lib": "pnpm -F @agent-arts/editor build"
+  },
+  "devDependencies": {
+    "less": "^4.6.4"
   }
 }

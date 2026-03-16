@@ -59,3 +59,10 @@ onMounted(() => {
 <template>
   <div ref="editorHostRef" class="editor-host"></div>
 </template>
+
+<style scoped lang="less">
+.editor-host {
+  border-radius: 8px;
+  background: rgba(250, 250, 250, 1);
+}
+</style>
