@@ -1,10 +1,22 @@
 <script setup lang="ts">
 import Editor from './components/Editor.vue'
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 
 const editorRef = ref()
 const templates = ref<any[]>([])
 const currentTemplateName = ref('')
+
+const TEMPLATE_STORAGE_KEY = 'editor-templates';
+
+onMounted(() => {
+  const savedTemplates = localStorage.getItem(TEMPLATE_STORAGE_KEY);
+  if (savedTemplates) {
+    templates.value = JSON.parse(savedTemplates);
+    if (templates.value.length > 0) {
+      loadTemplate(templates.value[0]);
+    }
+  }
+});
 
 const addBlock = () => {
   editorRef.value.editor.addBlock();
@@ -18,6 +30,7 @@ const saveTemplate = () => {
   if (name) {
     templates.value.push({ name, data });
     currentTemplateName.value = name;
+    localStorage.setItem(TEMPLATE_STORAGE_KEY, JSON.stringify(templates.value));
   }
 }
 
