@@ -1,6 +1,6 @@
 {
   "name": "@agent-arts/editor",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "type": "module",
   "main": "./dist/editor.umd.cjs",
   "module": "./dist/editor.js",
@@ -15,6 +15,10 @@
   "files": [
     "dist"
   ],
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
   "scripts": {
     "dev": "vite",
     "build": "vite build",
