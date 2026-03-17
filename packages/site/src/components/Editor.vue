@@ -257,7 +257,7 @@ defineExpose({
   </div>
 </template>
 
-<style scoped lang="less">
+<style lang="less">
 .editor-host {
   border-radius: 8px;
   background: rgba(250, 250, 250, 1);
@@ -543,5 +543,94 @@ defineExpose({
       }
     }
   }
+}
+
+@keyframes popup-fade-in {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes ai-pulse {
+  0% { opacity: 0.4; transform: scale(0.9); }
+  50% { opacity: 1; transform: scale(1.1); }
+  100% { opacity: 0.4; transform: scale(0.9); }
+}
+
+// Global CM Overrides
+.cm-editor {
+  border: none !important;
+}
+.cm-scroller {
+  font-family: inherit !important;
+}
+.cm-content {
+  caret-color: #8066ff;
+}
+.cm-selectionBackground {
+  background: #e9e4ff !important;
+}
+
+.cm-inline-block {
+  display: inline-block;
+  background-color: #f3f0ff;
+  color: #8066ff;
+  padding: 0 8px;
+  margin: 0 4px;
+  border-radius: 4px;
+  cursor: text;
+  border: 1px solid transparent;
+  transition: all 0.2s;
+  font-size: 15px;
+  vertical-align: middle;
+  pointer-events: auto;
+
+  &:hover {
+    background-color: #e9e4ff;
+    border-color: #8066ff;
+  }
+}
+
+.block-input {
+  background: transparent;
+  border: none;
+  outline: none;
+  color: inherit;
+  font: inherit;
+  padding: 4px 0;
+  width: auto;
+  min-width: 20px;
+  text-align: center;
+  cursor: text;
+  pointer-events: auto;
+
+  &::placeholder {
+    color: #b2a1ff;
+    opacity: 0.7;
+  }
+}
+
+.cm-editor .block-input {
+  text-align: left !important;
+}
+
+.cm-plugin-block {
+  display: inline-flex;
+  align-items: center;
+  background-color: #eef2ff;
+  color: #4f46e5;
+  padding: 2px 8px;
+  margin: 0 2px;
+  border-radius: 4px;
+  font-size: 14px;
+  vertical-align: middle;
+
+  .icon-plugin, .icon-workflow {
+    width: 16px;
+    height: 16px;
+    margin-right: 6px;
+    background-size: contain;
+  }
+  .icon-plugin { background-image: url('data:image/svg+xml,...'); /* 在此替换为您的图标 */ }
+  .icon-workflow { background-image: url('data:image/svg+xml,...'); /* 在此替换为您的图标 */ }
 }
 </style>
