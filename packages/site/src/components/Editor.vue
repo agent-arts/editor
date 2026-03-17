@@ -1,12 +1,12 @@
 <script setup lang="ts">
-import { onMounted, ref, reactive, nextTick, onUnmounted } from 'vue'
+import { onMounted, ref, onUnmounted } from 'vue'
 import {
   EditorBlock,
-  CustomEditor,
+  CustomEditor, // 核心
   CustomEditorOptions,
-  AIDialogPlugin,
-  EditBlockPlugin,
-  LibraryBlockPlugin,
+  AIDialogPlugin, // AI 对话插件
+  EditBlockPlugin, // 编辑块插件
+  LibraryBlockPlugin, // 插件块插件
 } from '@agent-arts/editor';
 
 const editorHostRef = ref<HTMLElement>()

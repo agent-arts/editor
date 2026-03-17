@@ -57,7 +57,7 @@ const aiPlugin = new AIDialogPlugin({
 });
 ```
 
-#### 插件库浮框 (LibraryBlockPlugin)
+#### 插件块插件 (LibraryBlockPlugin)
 
 ```typescript
 import { LibraryBlockPlugin } from '@agent-arts/editor';
