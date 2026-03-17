@@ -1,10 +1,8 @@
 import { EditorState, StateField, StateEffect, Facet, Text } from '@codemirror/state';
 import { EditorView, keymap, Decoration, DecorationSet, WidgetType, ViewPlugin, ViewUpdate, drawSelection } from '@codemirror/view';
 import { defaultKeymap, history, historyKeymap } from '@codemirror/commands';
-import { markdown, markdownLanguage } from '@codemirror/lang-markdown';
-import { languages } from '@codemirror/language-data';
 
-// 模拟 Coze 的块数据结构
+// 编辑块
 export interface EditorBlock {
   id: string;
   placeholder: string; // 空白引导
@@ -628,7 +626,6 @@ export function createEditorState(initialDoc: string, callbacks: CodeMirrorCallb
       ...historyKeymap
     ]),
     drawSelection(),
-    markdown({ base: markdownLanguage, codeLanguages: languages }),
     callbacksFacet.of(callbacks),
     initialBlocksFacet.of(initialBlocks),
     blockField,
