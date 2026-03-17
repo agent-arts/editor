@@ -278,9 +278,14 @@ export const blockField = StateField.define<DecorationSet>({
       .slice()
       .sort((a, b) => a.pos - b.pos)
       .map(({ pos, block }) => {
-        return Decoration.replace({
-          widget: new BlockWidget(block, callbacks),
-        }).range(pos, pos + 1);
+        let widget;
+        // 判断是插件块还是编辑块
+        if ('type' in block && ('name' in block)) {
+          widget = new PluginWidget(block as PluginBlock);
+        } else {
+          widget = new BlockWidget(block as EditorBlock, callbacks);
+        }
+        return Decoration.replace({ widget }).range(pos, pos + 1);
       });
     return Decoration.set(deco, true);
   },

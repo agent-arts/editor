@@ -104,12 +104,13 @@ const recreateEditor = (templateData: any) => {
     editor.value.destroy();
   }
 
-  const initialPluginBlocks = templateData.pluginBlocks.map((item: any) => ({ pos: item.pos, block: item.block }));
+  // 合并 editorBlocks 和 pluginBlocks
+  const initialBlocks = [...templateData.editorBlocks, ...templateData.pluginBlocks];
 
   const options: CustomEditorOptions = {
     parent: editorHostRef.value!,
     initialDoc: templateData.content,
-    initialBlocks: templateData.editorBlocks.concat(initialPluginBlocks),
+    initialBlocks: initialBlocks,
     onOpenPopup: (id, rect) => openPopup(id, rect),
     onTriggerPluginPopup: (pos) => openPluginPopup(pos),
     onTriggerAIDialog: (pos) => openAIDialog(pos),

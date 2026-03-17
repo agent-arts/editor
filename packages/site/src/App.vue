@@ -35,6 +35,8 @@ const saveTemplate = () => {
 }
 
 const loadTemplate = (template: any) => {
+  console.log('template', template, template.data);
+  
   currentTemplateName.value = template.name;
   // 销毁并重新创建 editor 实例来加载模板
   editorRef.value.recreateEditor(template.data);
