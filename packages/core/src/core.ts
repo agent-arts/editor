@@ -355,6 +355,7 @@ const deleteBlock = (view: EditorView, callbacks: CodeMirrorCallbacks) => {
 
   let blockId: string | null = null;
   let blockPos: number | null = null;
+  let blockLen: number = 1;
 
   // Check if there is a block just before the cursor
   const field = view.state.field(blockField, false);
@@ -364,6 +365,11 @@ const deleteBlock = (view: EditorView, callbacks: CodeMirrorCallbacks) => {
       if (widget instanceof BlockWidget) {
         blockId = widget.block.id;
         blockPos = from;
+        blockLen = to - from;
+      } else if (widget instanceof PluginWidget) {
+        blockId = widget.block.id;
+        blockPos = from;
+        blockLen = to - from;
       }
     });
   }
@@ -373,7 +379,7 @@ const deleteBlock = (view: EditorView, callbacks: CodeMirrorCallbacks) => {
     callbacks.deleteBlock(blockId);
     // Remove the character from doc (this will also remove the decoration)
     view.dispatch({
-      changes: { from: blockPos, to: blockPos + 1 },
+      changes: { from: blockPos, to: blockPos + blockLen },
       selection: { anchor: blockPos }
     });
     return true;
