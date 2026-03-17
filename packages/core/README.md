@@ -1,10 +1,12 @@
 # @agent-arts/editor
 
-特性：
+一个基于 CodeMirror 6 的提示词编辑器，框架无关，支持 Vue.js、Angular、React。
+
+## 特性
 
 - 编辑块 edit-block：可编辑
-- 插件块 plugin-block：不可编辑，通过大括号 `{` 呼起
-- AI 对话 ai-dialog：通过斜线 `/` 或拖选内容呼起
+- 插件块 plugin-block：不可编辑，通过大括号 `{` 呼起，用户插入插件、工作流、变量等
+- AI 对话 ai-dialog：通过斜线 `/` 或拖选内容呼起，通过 AI 生成和优化提示词
 
 ## 演示动画
 
@@ -90,5 +92,3 @@ const editPlugin = new EditBlockPlugin({
 - `editor.syncBlock(block)`: 同步外部状态到编辑器内部的块。
 - `editor.getData()`: 获取编辑器的 JSON 数据和 HTML 内容。
 - `editor.destroy()`: 销毁编辑器实例。
-
-
