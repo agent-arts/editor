@@ -7,7 +7,6 @@
   max-width: none;
   margin: 0;
   box-shadow: none;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
 
   // Header
   .editor-header {
@@ -183,8 +182,6 @@
               margin-right: 12px;
               background-size: contain;
             }
-            .icon-plugin { background-image: url('data:image/svg+xml,...'); /* 在此替换为您的图标 */ }
-            .icon-workflow { background-image: url('data:image/svg+xml,...'); /* 在此替换为您的图标 */ }
 
             .item-name {
               flex-grow: 1;
@@ -508,6 +505,4 @@
     margin-right: 6px;
     background-size: contain;
   }
-  .icon-plugin { background-image: url('data:image/svg+xml,...'); /* 在此替换为您的图标 */ }
-  .icon-workflow { background-image: url('data:image/svg+xml,...'); /* 在此替换为您的图标 */ }
 }
