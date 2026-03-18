@@ -1,11 +1,7 @@
 <script setup lang="ts">
 import { onMounted, ref, onUnmounted } from 'vue'
-import {
-  EditorBlock,
-  CustomEditor, // 核心
-  CustomEditorOptions,
-  PluginBlock,
-} from '@agent-arts/editor';
+import { CustomEditor } from '@agent-arts/editor'
+import type { CustomEditorOptions, EditorBlock, PluginBlock } from '@agent-arts/editor'
 
 class LocalLibraryBlockController {
   public plugins = [

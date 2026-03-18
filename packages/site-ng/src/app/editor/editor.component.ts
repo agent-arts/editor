@@ -1,12 +1,8 @@
 import { Component, ElementRef, OnInit, ViewChild, OnDestroy, ViewEncapsulation, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import {
-  EditorBlock,
-  CustomEditor,
-  CustomEditorOptions,
-  PluginBlock,
-} from '@agent-arts/editor';
+import { CustomEditor } from '@agent-arts/editor';
+import type { CustomEditorOptions, EditorBlock, PluginBlock } from '@agent-arts/editor';
 
 class LocalEditBlockController {
   public editingBlock: EditorBlock = { id: '', placeholder: '', presetText: '' };
