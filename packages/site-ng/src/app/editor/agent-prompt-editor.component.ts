@@ -1,4 +1,4 @@
-import { Component, ElementRef, OnInit, ViewChild, OnDestroy, ViewEncapsulation, HostListener, forwardRef } from '@angular/core';
+import { Component, ElementRef, OnInit, ViewChild, OnDestroy, ViewEncapsulation, HostListener, forwardRef, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ControlValueAccessor, FormsModule, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { CustomEditor } from '@agent-arts/editor';
@@ -201,6 +201,8 @@ export class AgentPromptEditorComponent implements OnInit, OnDestroy, ControlVal
   aiApplyRange: { from: number, to: number } | null = null;
   private aiPlugin!: LocalAIDialogController;
 
+  constructor(private cdr: ChangeDetectorRef) {}
+
   writeValue(value: string | null): void {
     this.modelValue = value ?? '';
     if (!this.editor) {
@@ -239,7 +241,7 @@ export class AgentPromptEditorComponent implements OnInit, OnDestroy, ControlVal
       initialBlocks: initialData ? [...(initialData.editorBlocks || []), ...(initialData.pluginBlocks || [])] : initialBlocks,
       onOpenPopup: (id: string, rect: DOMRect) => this.openPopup(id, rect),
       onTriggerPluginPopup: (pos: number) => this.openPluginPopup(pos),
-      onHidePluginPopup: () => this.libraryPlugin?.hide(),
+      onHidePluginPopup: () => this.closePopup(),
       onTriggerAIDialog: (pos: number) => this.openAIDialog(pos),
       onChange: (data) => this.emitModel(data),
       onBlockUpdated: (id: string, text: string) => {
@@ -257,15 +259,23 @@ export class AgentPromptEditorComponent implements OnInit, OnDestroy, ControlVal
     }
 
     this.aiPlugin = new LocalAIDialogController({
-      onStream: (text: string) => this.aiResponseText = text,
-      onLoading: (loading: boolean) => this.aiLoading = loading,
+      onStream: (text: string) => {
+        this.aiResponseText = text;
+        this.cdr.detectChanges();
+      },
+      onLoading: (loading: boolean) => {
+        this.aiLoading = loading;
+        this.cdr.detectChanges();
+      },
       onComplete: () => {
         this.isGenerating = false;
         this.aiFinished = true;
+        this.cdr.detectChanges();
       },
       onStop: () => {
         this.isGenerating = false;
         this.aiFinished = true;
+        this.cdr.detectChanges();
       },
       onShow: (pos: number, style: { top: string, left: string }) => {
         this.aiDialogStyle = style;
@@ -273,6 +283,7 @@ export class AgentPromptEditorComponent implements OnInit, OnDestroy, ControlVal
         this.aiResponseText = '';
         this.aiFinished = false;
         this.showAIDialog = true;
+        this.cdr.detectChanges();
       },
       onHide: () => {
         this.showAIDialog = false;
@@ -281,6 +292,7 @@ export class AgentPromptEditorComponent implements OnInit, OnDestroy, ControlVal
         this.aiResponseText = '';
         this.aiQuestion = '';
         this.aiApplyRange = null;
+        this.cdr.detectChanges();
       }
     });
 
@@ -288,9 +300,11 @@ export class AgentPromptEditorComponent implements OnInit, OnDestroy, ControlVal
       onShow: (pos: number, style: { top: string, left: string }) => {
         this.pluginPopupStyle = style;
         this.showPluginPopup = true;
+        this.cdr.detectChanges();
       },
       onHide: () => {
         this.showPluginPopup = false;
+        this.cdr.detectChanges();
       }
     });
 
@@ -299,9 +313,11 @@ export class AgentPromptEditorComponent implements OnInit, OnDestroy, ControlVal
         this.editingBlock = block;
         this.popupStyle = style;
         this.showPopup = true;
+        this.cdr.detectChanges();
       },
       onHide: () => {
         this.showPopup = false;
+        this.cdr.detectChanges();
       }
     });
   }
@@ -411,7 +427,7 @@ export class AgentPromptEditorComponent implements OnInit, OnDestroy, ControlVal
       initialBlocks,
       onOpenPopup: (id: string, rect: DOMRect) => this.openPopup(id, rect),
       onTriggerPluginPopup: (pos: number) => this.openPluginPopup(pos),
-      onHidePluginPopup: () => this.libraryPlugin?.hide(),
+      onHidePluginPopup: () => this.closePopup(),
       onTriggerAIDialog: (pos: number) => this.openAIDialog(pos),
       onChange: (data) => this.emitModel(data),
       onBlockUpdated: (id: string, text: string) => {
@@ -468,9 +484,9 @@ export class AgentPromptEditorComponent implements OnInit, OnDestroy, ControlVal
   }
 
   closePopup() {
-    this.editPlugin.hide();
-    this.libraryPlugin.hide();
-    this.aiPlugin.hide();
+    this.editPlugin?.hide();
+    this.libraryPlugin?.hide();
+    this.aiPlugin?.hide();
   }
 
   ngOnDestroy() {

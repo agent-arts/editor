@@ -195,6 +195,7 @@ const deleteBlock = (view: EditorView, callbacks: CodeMirrorCallbacks) => {
           blockLen = to - from;
           return false;
         }
+        return false;
       });
     }
   };
