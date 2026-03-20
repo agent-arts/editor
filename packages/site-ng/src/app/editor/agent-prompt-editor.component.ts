@@ -1,4 +1,4 @@
-import { Component, ElementRef, OnInit, ViewChild, OnDestroy, ViewEncapsulation, HostListener, forwardRef, ChangeDetectorRef } from '@angular/core';
+import { Component, ElementRef, OnInit, ViewChild, OnDestroy, ViewEncapsulation, HostListener, forwardRef, ChangeDetectorRef, ContentChild, TemplateRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ControlValueAccessor, FormsModule, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { CustomEditor } from '@agent-arts/editor';
@@ -162,6 +162,10 @@ class LocalAIDialogController {
   ]
 })
 export class AgentPromptEditorComponent implements OnInit, OnDestroy, ControlValueAccessor {
+  @ContentChild('editPopup', { read: TemplateRef }) editPopupTpl?: TemplateRef<any>;
+  @ContentChild('pluginPopup', { read: TemplateRef }) pluginPopupTpl?: TemplateRef<any>;
+  @ContentChild('aiDialog', { read: TemplateRef }) aiDialogTpl?: TemplateRef<any>;
+
   @ViewChild('editorHost', { static: true }) editorHost!: ElementRef;
   private editor!: CustomEditor;
   private modelValue = '';

@@ -32,7 +32,22 @@
     </div>
   </div>
 
-  <agent-prompt-editor [(ngModel)]="editorModel"></agent-prompt-editor>
+  <agent-prompt-editor [(ngModel)]="editorModel">
+    <ng-template #editPopup let-comp let-block="block" let-style="style">
+      <!-- comp 就是 AgentPromptEditorComponent 实例，可调用 comp.closePopup()/comp.syncBlock() 等 -->
+      <div class="popup-content">
+        自定义编辑块弹窗：{{ block.id }}
+      </div>
+    </ng-template>
+
+    <ng-template #pluginPopup let-comp let-library="library" let-style="style">
+      <div>自定义插件弹窗（变量数：{{ library.userVariables.length }}）</div>
+    </ng-template>
+
+    <ng-template #aiDialog let-comp let-style="style">
+      <div>自定义 AI 弹窗（loading：{{ comp.aiLoading }}）</div>
+    </ng-template>
+  </agent-prompt-editor>
 </div>
 
 <router-outlet />
