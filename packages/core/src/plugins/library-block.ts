@@ -88,12 +88,61 @@ export function pluginPopupTriggerExtensions(options: {
   onHidePluginPopup?: () => void;
 }): Extension[] {
   return [
+    EditorView.domEventHandlers({
+      keydown: (event, view) => {
+        if (!options.onHidePluginPopup) return false;
+        if (event.key !== 'Backspace' && event.key !== 'Delete') return false;
+
+        const sel = view.state.selection.main;
+        if (!sel.empty) {
+          const selectedText = view.state.doc.sliceString(sel.from, sel.to);
+          if (selectedText.includes('{')) options.onHidePluginPopup();
+          return false;
+        }
+
+        if (event.key === 'Backspace') {
+          if (sel.from === 0) return false;
+          const leftChar = view.state.doc.sliceString(sel.from - 1, sel.from);
+          if (leftChar === '{') options.onHidePluginPopup();
+          return false;
+        }
+
+        const rightChar = view.state.doc.sliceString(sel.from, Math.min(sel.from + 1, view.state.doc.length));
+        if (rightChar === '{') options.onHidePluginPopup();
+        return false;
+      },
+      beforeinput: (event, view) => {
+        if (!options.onHidePluginPopup) return false;
+        const inputType = (event as InputEvent).inputType;
+        if (!inputType || !inputType.startsWith('delete')) return false;
+
+        const sel = view.state.selection.main;
+        if (!sel.empty) {
+          const selectedText = view.state.doc.sliceString(sel.from, sel.to);
+          if (selectedText.includes('{')) options.onHidePluginPopup();
+          return false;
+        }
+
+        if (inputType === 'deleteContentBackward') {
+          if (sel.from === 0) return false;
+          const leftChar = view.state.doc.sliceString(sel.from - 1, sel.from);
+          if (leftChar === '{') options.onHidePluginPopup();
+          return false;
+        }
+
+        if (inputType === 'deleteContentForward') {
+          const rightChar = view.state.doc.sliceString(sel.from, Math.min(sel.from + 1, view.state.doc.length));
+          if (rightChar === '{') options.onHidePluginPopup();
+        }
+        return false;
+      }
+    }),
     EditorView.updateListener.of((update) => {
       if (!update.docChanged) return;
       let shouldHide = false;
-      update.changes.iterChanges((fromA, _toA, _fromB, _toB, inserted) => {
+      update.changes.iterChanges((fromA, toA, _fromB, _toB, inserted) => {
         const insertedText = inserted.sliceString(0);
-        const removedText = update.startState.doc.sliceString(fromA, _toA);
+        const removedText = update.startState.doc.sliceString(fromA, toA);
 
         if (removedText.includes('{') && !insertedText.includes('{')) {
           shouldHide = true;
