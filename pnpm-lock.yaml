@@ -74,8 +74,8 @@ importers:
   packages/site-ng:
     dependencies:
       '@agent-arts/editor':
-        specifier: ^0.1.0
-        version: 0.1.1
+        specifier: ^0.2.0
+        version: 0.2.0
       '@angular/animations':
         specifier: ^18.2.0
         version: 18.2.14(@angular/core@18.2.14(rxjs@7.8.2)(zone.js@0.14.10))
@@ -176,8 +176,8 @@ importers:
 
 packages:
 
-  '@agent-arts/editor@0.1.1':
-    resolution: {integrity: sha512-8c3cQ5KiXhQmxHcWhTH7MOu9G863CoA3wLrR+EDbqBtk18qsHJLrFBPzAPz3TB5cHaz2UHyUx+54Xv/1UjbizA==}
+  '@agent-arts/editor@0.2.0':
+    resolution: {integrity: sha512-bX2ALVwmi5uQx8lScJn+lyLDWnE57Env8nw6oPAf8pQqLgMbqhJDVpqW1kgrpZAIw6/wFNeQFn3uJTz0OfMOug==}
 
   '@ampproject/remapping@2.3.0':
     resolution: {integrity: sha512-30iZtAPgz+LTIYoeivqYo853f02jBYSd5uGnGpkFV0M3xOt9aN73erkgYAmZU43x4VfqcnLxW9Kpg3R5LC4YYw==}
@@ -5216,7 +5216,7 @@ packages:
 
 snapshots:
 
-  '@agent-arts/editor@0.1.1':
+  '@agent-arts/editor@0.2.0':
     dependencies:
       '@codemirror/commands': 6.10.3
       '@codemirror/state': 6.6.0

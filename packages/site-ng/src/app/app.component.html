@@ -69,41 +69,7 @@
     </ng-template>
 
     <ng-template #aiDialog let-comp let-style="style">
-      <!-- AI 响应内容 -->
-      <div *ngIf="comp.aiResponseText" class="ai-response-area" #aiResponseArea>
-        <div class="ai-response-content">{{ comp.aiResponseText }}</div>
-        <div *ngIf="comp.aiLoading" class="ai-loading-indicator">
-          <span class="dot"></span>
-        </div>
-        <div *ngIf="comp.aiFinished && !comp.aiLoading" class="ai-result-actions">
-          <button class="btn-insert" (click)="comp.insertAIResult()">插入</button>
-          <button class="btn-cancel" (click)="comp.cancelAIResult()">取消</button>
-        </div>
-      </div>
-
-      <!-- 输入区域 -->
-      <div class="ai-input-container" [class.is-generating]="comp.isGenerating">
-        <i class="icon-sparkle-small"></i>
-        <input 
-          type="text" 
-          [(ngModel)]="comp.aiQuestion" 
-          (keyup.enter)="comp.sendAIQuestion()"
-          placeholder="你希望如何编写或优化提示词？"
-          [disabled]="comp.isGenerating"
-        >
-        <div class="ai-actions">
-          <button *ngIf="!comp.isGenerating" class="btn-send" (click)="comp.sendAIQuestion()" [disabled]="!comp.aiQuestion">
-            <i class="icon-send"></i>
-          </button>
-          <button *ngIf="comp.isGenerating" class="btn-stop" (click)="comp.stopAIResponse()">
-            <i class="icon-stop"></i> 停止响应
-          </button>
-        </div>
-      </div>
-      
-      <div *ngIf="comp.isGenerating || comp.aiResponseText" class="ai-dialog-footer">
-        内容由 AI 生成，无法确保真实准确，仅供参考。
-      </div>
+      <button (click)="comp.insertAIResult('# 标题\n\n这是一段测试文本，这是**加粗**文本。')">插入</button>
     </ng-template>
   </agent-prompt-editor>
 </div>

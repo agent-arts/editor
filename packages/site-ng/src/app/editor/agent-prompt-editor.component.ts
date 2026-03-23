@@ -217,9 +217,9 @@ export class AgentPromptEditorComponent implements OnInit, OnDestroy, ControlVal
     this.aiPlugin.hide();
   }
 
-  insertAIResult() {
+  insertAIResult(text: string) {
     const view = this.editor.view;
-    const text = this.aiResponseText;
+    // const text = this.aiResponseText;
     const range = this.aiApplyRange;
     if (!text || !range) return;
 
