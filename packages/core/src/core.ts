@@ -77,7 +77,7 @@ export class CustomEditor {
       }
     };
 
-    const state = createEditorState(initialDoc, callbacks, allInitialBlocks);
+    const state = createEditorState(initialDoc, callbacks, allInitialBlocks, !!options.readonly);
 
     this.view = new EditorView({
       state: state.update({
@@ -314,7 +314,7 @@ const markdownStyleField = StateField.define<DecorationSet>({
 /**
  * 创建编辑器状态
  */
-function createEditorState(initialDoc: string, callbacks: CodeMirrorCallbacks, initialBlocks: { pos: number, len?: number, block: EditorBlock | PluginBlock }[] = []) {
+function createEditorState(initialDoc: string, callbacks: CodeMirrorCallbacks, initialBlocks: { pos: number, len?: number, block: EditorBlock | PluginBlock }[] = [], readonly: boolean = false) {
   const editorBlocks = initialBlocks.filter((b) => !('type' in (b.block as any) && 'name' in (b.block as any))) as { pos: number, len?: number, block: EditorBlock }[];
   const pluginBlocks = initialBlocks
     .filter((b) => ('type' in (b.block as any) && 'name' in (b.block as any)))
@@ -331,8 +331,8 @@ function createEditorState(initialDoc: string, callbacks: CodeMirrorCallbacks, i
       ...historyKeymap
     ]),
     drawSelection(),
-    ...editBlockExtensions({ callbacks, initialBlocks: editorBlocks }),
-    ...pluginBlockExtensions({ initialBlocks: pluginBlocks }),
+    ...editBlockExtensions({ callbacks, initialBlocks: editorBlocks, readonly }),
+    ...pluginBlockExtensions({ initialBlocks: pluginBlocks, readonly }),
     markdownStyleField,
     editorTheme
   ];
