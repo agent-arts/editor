@@ -14,7 +14,7 @@ export const addBlockAtEffect = StateEffect.define<{ pos: number; len?: number; 
 export const updateBlockEffect = StateEffect.define<EditorBlock>();
 
 class EditBlockWidget extends WidgetType {
-  constructor(public block: EditorBlock, private callbacks: CodeMirrorCallbacks) {
+  constructor(public block: EditorBlock, private callbacks: CodeMirrorCallbacks, private readonlyMode: boolean) {
     super();
   }
 
@@ -28,6 +28,10 @@ class EditBlockWidget extends WidgetType {
     input.className = 'block-input';
     input.value = this.block.presetText || '';
     input.placeholder = this.block.placeholder || '请输入...';
+    if (this.readonlyMode) {
+      input.setAttribute('readonly', 'true');
+      input.setAttribute('disabled', 'true');
+    }
 
     const measureWidth = (val: string) => {
       const temp = document.createElement('span');
@@ -44,38 +48,46 @@ class EditBlockWidget extends WidgetType {
 
     input.style.width = `${measureWidth(input.value)}px`;
 
-    input.oninput = (e) => {
-      const val = (e.target as HTMLInputElement).value;
-      input.style.width = `${measureWidth(val)}px`;
-      this.callbacks.updateBlockText(this.block.id, val);
-    };
+    if (!this.readonlyMode) {
+      input.oninput = (e) => {
+        const val = (e.target as HTMLInputElement).value;
+        input.style.width = `${measureWidth(val)}px`;
+        this.callbacks.updateBlockText(this.block.id, val);
+      };
+    }
 
-    input.onfocus = () => {
-      const rect = span.getBoundingClientRect();
-      this.callbacks.openPopup(this.block.id, rect);
-    };
+    if (!this.readonlyMode) {
+      input.onfocus = () => {
+        const rect = span.getBoundingClientRect();
+        this.callbacks.openPopup(this.block.id, rect);
+      };
+    }
 
     input.onmousedown = (e) => {
       e.stopPropagation();
     };
 
-    input.onclick = (e) => {
-      e.stopPropagation();
-      const rect = span.getBoundingClientRect();
-      this.callbacks.openPopup(this.block.id, rect);
-    };
+    if (!this.readonlyMode) {
+      input.onclick = (e) => {
+        e.stopPropagation();
+        const rect = span.getBoundingClientRect();
+        this.callbacks.openPopup(this.block.id, rect);
+      };
+    }
 
-    input.onkeydown = (e) => {
-      if (e.key === 'Backspace' && input.value === '') {
-        e.preventDefault();
-        const pos = view.posAtDOM(span);
-        this.callbacks.deleteBlock(this.block.id);
-        view.dispatch({
-          changes: { from: pos, to: pos + 1 },
-          selection: { anchor: pos }
-        });
-      }
-    };
+    if (!this.readonlyMode) {
+      input.onkeydown = (e) => {
+        if (e.key === 'Backspace' && input.value === '') {
+          e.preventDefault();
+          const pos = view.posAtDOM(span);
+          this.callbacks.deleteBlock(this.block.id);
+          view.dispatch({
+            changes: { from: pos, to: pos + 1 },
+            selection: { anchor: pos }
+          });
+        }
+      };
+    }
 
     span.appendChild(input);
     return span;
@@ -94,10 +106,15 @@ const initialBlocksFacet = Facet.define<{ pos: number; len?: number; block: Edit
   combine: values => values.length ? values[0] : []
 });
 
+const readonlyFacet = Facet.define<boolean, boolean>({
+  combine: values => !!(values.length ? values[0] : false)
+});
+
 export const editBlockField = StateField.define<DecorationSet>({
   create(state) {
     const callbacks = state.facet(callbacksFacet);
     const initialBlocks = state.facet(initialBlocksFacet);
+    const readonlyMode = state.facet(readonlyFacet);
     if (!initialBlocks || initialBlocks.length === 0) {
       return Decoration.none;
     }
@@ -106,13 +123,14 @@ export const editBlockField = StateField.define<DecorationSet>({
       .slice()
       .sort((a, b) => a.pos - b.pos)
       .map(({ pos, len, block }) => {
-        const widget = new EditBlockWidget(block, callbacks);
+        const widget = new EditBlockWidget(block, callbacks, readonlyMode);
         return Decoration.replace({ widget }).range(pos, pos + (len || 1));
       });
     return Decoration.set(deco, true);
   },
   update(decorations, tr) {
     const callbacks = tr.state.facet(callbacksFacet);
+    const readonlyMode = tr.state.facet(readonlyFacet);
     if (tr.docChanged) {
       const changedRanges: { from: number; to: number }[] = [];
       tr.changes.iterChanges((fromA, toA) => {
@@ -128,14 +146,14 @@ export const editBlockField = StateField.define<DecorationSet>({
       if (e.is(addBlockEffect)) {
         const pos = tr.state.selection.main.head - 1;
         const blockDecoration = Decoration.replace({
-          widget: new EditBlockWidget(e.value, callbacks),
+          widget: new EditBlockWidget(e.value, callbacks, readonlyMode),
         }).range(pos, pos + 1);
         decorations = decorations.update({ add: [blockDecoration] });
       } else if (e.is(addBlockAtEffect)) {
         const { pos: originalPos, len, block } = e.value;
         const pos = tr.changes.mapPos(originalPos);
         const blockDecoration = Decoration.replace({
-          widget: new EditBlockWidget(block, callbacks),
+          widget: new EditBlockWidget(block, callbacks, readonlyMode),
         }).range(pos, pos + (len || 1));
         decorations = decorations.update({ add: [blockDecoration] });
       } else if (e.is(updateBlockEffect)) {
@@ -155,7 +173,7 @@ export const editBlockField = StateField.define<DecorationSet>({
               return !(widget instanceof EditBlockWidget && widget.block.id === newBlock.id);
             },
             add: [Decoration.replace({
-              widget: new EditBlockWidget(newBlock, callbacks),
+              widget: new EditBlockWidget(newBlock, callbacks, readonlyMode),
             }).range(pos, pos + 1)]
           });
         }
@@ -215,10 +233,12 @@ export const editBlockTheme = EditorView.theme({
 export function editBlockExtensions(options: {
   callbacks: CodeMirrorCallbacks;
   initialBlocks?: { pos: number; len?: number; block: EditorBlock }[];
+  readonly?: boolean;
 }): Extension[] {
   return [
     callbacksFacet.of(options.callbacks),
     initialBlocksFacet.of(options.initialBlocks || []),
+    readonlyFacet.of(!!options.readonly),
     editBlockField,
     editBlockTheme
   ];

@@ -43,6 +43,9 @@ const initialPluginBlocksFacet = Facet.define<{ pos: number, len?: number, block
 });
 
 const variableTokenRegex = /\{\{(.+?)\}\}/g;
+const readonlyFacet = Facet.define<boolean, boolean>({
+  combine: values => !!(values.length ? values[0] : false)
+});
 const variableTheme = EditorView.theme({
   '.cm-variable-input': {
     border: 'none',
@@ -61,12 +64,12 @@ const variableTheme = EditorView.theme({
 });
 
 class VariableWidget extends WidgetType {
-  constructor(private name: string, private tokenLength: number) {
+  constructor(private name: string, private tokenLength: number, private readonlyMode: boolean) {
     super();
   }
 
   override eq(other: WidgetType) {
-    return other instanceof VariableWidget && other.name === this.name && other.tokenLength === this.tokenLength;
+    return other instanceof VariableWidget && other.name === this.name && other.tokenLength === this.tokenLength && other.readonlyMode === this.readonlyMode;
   }
 
   override toDOM(view: EditorView) {
@@ -80,14 +83,20 @@ class VariableWidget extends WidgetType {
     input.autocomplete = 'off';
     input.autocapitalize = 'off';
     input.className = 'cm-variable-input';
+    if (this.readonlyMode) {
+      input.setAttribute('readonly', 'true');
+      input.setAttribute('disabled', 'true');
+    }
 
     input.addEventListener('mousedown', (e) => {
       e.stopPropagation();
     });
 
-    input.addEventListener('keydown', (e) => {
-      e.stopPropagation();
-    });
+    if (!this.readonlyMode) {
+      input.addEventListener('keydown', (e) => {
+        e.stopPropagation();
+      });
+    }
 
     const measureWidth = (val: string) => {
       const temp = document.createElement('span');
@@ -103,28 +112,34 @@ class VariableWidget extends WidgetType {
     };
 
     input.style.width = `${measureWidth(input.value)}px`;
-    input.addEventListener('input', () => {
-      input.style.width = `${measureWidth(input.value)}px`;
-    });
-
-    span.addEventListener('mousedown', (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      input.focus();
-      input.select();
-    });
-
-    input.addEventListener('blur', () => {
-      const nextText = input.value;
-      const from = view.posAtDOM(span);
-      const to = from + this.tokenLength;
-      if (view.state.doc.sliceString(from, to) === nextText) return;
-      view.dispatch({
-        changes: { from, to, insert: nextText },
-        selection: { anchor: from + nextText.length }
+    if (!this.readonlyMode) {
+      input.addEventListener('input', () => {
+        input.style.width = `${measureWidth(input.value)}px`;
       });
-      view.focus();
-    });
+    }
+
+    if (!this.readonlyMode) {
+      span.addEventListener('mousedown', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        input.focus();
+        input.select();
+      });
+    }
+
+    if (!this.readonlyMode) {
+      input.addEventListener('blur', () => {
+        const nextText = input.value;
+        const from = view.posAtDOM(span);
+        const to = from + this.tokenLength;
+        if (view.state.doc.sliceString(from, to) === nextText) return;
+        view.dispatch({
+          changes: { from, to, insert: nextText },
+          selection: { anchor: from + nextText.length }
+        });
+        view.focus();
+      });
+    }
 
     span.append(input);
     return span;
@@ -135,23 +150,25 @@ class VariableWidget extends WidgetType {
   }
 }
 
-function getVariableTokenDecorations(doc: string) {
+function getVariableTokenDecorations(doc: string, readonlyMode: boolean) {
   const ranges = [];
   let match: RegExpExecArray | null;
   while ((match = variableTokenRegex.exec(doc)) !== null) {
     const start = match.index;
     const token = match[0];
-    ranges.push(Decoration.replace({ widget: new VariableWidget(match[1], token.length) }).range(start, start + token.length));
+    ranges.push(Decoration.replace({ widget: new VariableWidget(match[1], token.length, readonlyMode) }).range(start, start + token.length));
   }
   return Decoration.set(ranges, true);
 }
 
 const variableTokenField = StateField.define<DecorationSet>({
   create(state) {
-    return getVariableTokenDecorations(state.doc.toString());
+    const readonlyMode = state.facet(readonlyFacet);
+    return getVariableTokenDecorations(state.doc.toString(), readonlyMode);
   },
   update(decorations, tr) {
-    if (tr.docChanged) return getVariableTokenDecorations(tr.state.doc.toString());
+    const readonlyMode = tr.state.facet(readonlyFacet);
+    if (tr.docChanged) return getVariableTokenDecorations(tr.state.doc.toString(), readonlyMode);
     return decorations.map(tr.changes);
   },
   provide: f => [
@@ -207,6 +224,7 @@ export const pluginBlockField = StateField.define<DecorationSet>({
 
 export function pluginBlockExtensions(options: {
   initialBlocks?: { pos: number, len?: number, block: PluginBlock }[];
+  readonly?: boolean;
 }): Extension[] {
   const findVariableEndingAt = (view: EditorView, pos: number): { from: number, to: number } | null => {
     const field = view.state.field(variableTokenField, false);
@@ -230,11 +248,13 @@ export function pluginBlockExtensions(options: {
 
   return [
     initialPluginBlocksFacet.of(options.initialBlocks || []),
+    readonlyFacet.of(!!options.readonly),
     pluginBlockField,
     variableTokenField,
     variableTheme,
     EditorView.domEventHandlers({
       keydown: (event, view) => {
+        if (view.state.facet(readonlyFacet)) return false;
         if (event.key !== 'Backspace' && event.key !== 'Delete') return false;
         const sel = view.state.selection.main;
         if (!sel.empty) return false;
@@ -258,6 +278,7 @@ export function pluginBlockExtensions(options: {
         return false;
       },
       beforeinput: (event, view) => {
+        if (view.state.facet(readonlyFacet)) return false;
         const inputType = (event as InputEvent).inputType;
         if (inputType !== 'deleteContentBackward' && inputType !== 'deleteContentForward') return false;
         const sel = view.state.selection.main;
